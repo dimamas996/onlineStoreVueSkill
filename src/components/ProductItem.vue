@@ -1,8 +1,8 @@
 <template>
   <li class="catalog__item">
-    <a class="catalog__pic" href="#">
+    <router-link class="catalog__pic" :to="{name: 'product', params: {id: product.id}}">
       <img :src="product.image" :alt="product.title">
-    </a>
+    </router-link>
 
     <h3 class="catalog__title">
       <a href="#">
@@ -11,32 +11,15 @@
     </h3>
 
     <span class="catalog__price">
-              {{ product.price }}
+              {{ product.price | numberFormat}} ₽
             </span>
 
     <ul class="colors colors--black">
-      <li class="colors__item">
+      <li v-for="colorItem in product.colorOptions" class="colors__item" :key="colorItem.id">
         <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
         <label class="colors__label">
-          <input class="colors__radio sr-only" type="radio" value="#73B6EA" v-model="color">
-          <span class="colors__value" style="background-color: #73B6EA;">
-                  </span>
-        </label>
-      </li>
-      <li class="colors__item">
-        <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-        <label class="colors__label">
-          <input class="colors__radio sr-only" type="radio" value="#8BE000" v-model="color">
-          <span class="colors__value" style="background-color: #8BE000;">
-                  </span>
-        </label>
-      </li>
-      <li class="colors__item">
-        <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-        <label class="colors__label">
-          <input class="colors__radio sr-only" type="radio" value="#222" v-model="color">
-          <span class="colors__value" style="background-color: #222;">
-                  </span>
+          <input class="colors__radio sr-only" type="radio" :value="colorItem" v-model="color">
+          <span class="colors__value" :style="{ backgroundColor: colorItem }"></span>
         </label>
       </li>
     </ul>
@@ -44,14 +27,26 @@
 </template>
 
 <script>
+import goToPage from '@/helpers/goToPage';
+import numberFormat from '@/helpers/numberFormat';
+
 export default {
   name: 'ProductItem',
   data() {
     return {
-      color: '#73B6EA',
+      color: null,
     };
   },
+  filters: {
+    numberFormat,
+  },
   props: ['product'],
+  created() {
+    [this.color] = [this.product.colorOptions[0]];
+  },
+  methods: {
+    goToPage,
+  },
 };
 </script>
 

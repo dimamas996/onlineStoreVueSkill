@@ -1,32 +1,52 @@
 <template>
-  <section class="catalog">
-    <ProductList :products="products"/>
-    <BasePagination v-model="page" :count="countProducts" :per-page="productPerPage"/>
-  </section>
+  <router-view/>
 </template>
 
 <script>
-import products from './data/products';
-import ProductList from './components/ProductList.vue';
-import BasePagination from './components/BasePagination.vue';
 
 export default {
   name: 'App',
-  components: { ProductList, BasePagination },
-  data() {
-    return {
-      page: 1,
-      productPerPage: 6,
-    };
-  },
-  computed: {
-    products() {
-      const offset = (this.page - 1) * this.productPerPage;
-      return products.slice(offset, offset + this.productPerPage);
-    },
-    countProducts() {
-      return products.length;
-    },
-  },
 };
 </script>
+
+<!--
+<template>
+  <component :is="currentPageComponent" :page-params="currentPageParams"></component>
+</template>
+
+import eventBus from '@/eventBus';
+import MainPage from './pages/MainPage.vue';
+import ProductPage from './pages/ProductPage.vue';
+import NotFoundPage from './pages/NotFoundPage.vue';
+
+const routes = {
+  main: MainPage,
+  product: ProductPage,
+};
+
+  data() {
+    return {
+      currentPage: 'main',
+      currentPageParams: {},
+    };
+  },
+  components: {
+    MainPage,
+    ProductPage,
+    NotFoundPage,
+  },
+  computed: {
+    currentPageComponent() {
+      return routes[this.currentPage] || 'NotFoundPage';
+    },
+  },
+  methods: {
+    goToPage(pageName, pageParams) {
+      this.currentPage = pageName;
+      this.currentPageParams = pageParams || {};
+    },
+  },
+  created() {
+    eventBus.$on('goToPage', (pageName, pageParams) => this.goToPage(pageName, pageParams));
+  },
+-->
