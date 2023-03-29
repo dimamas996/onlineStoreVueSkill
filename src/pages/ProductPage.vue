@@ -102,7 +102,10 @@
             </fieldset>
 
             <div class="item__row">
-              <QuantityToggle v-model="productAmount"/>
+              <QuantityToggle
+                :product-amount="productAmount"
+                @changer="updateProductAmount"
+              />
               <button class="button button--primery" type="submit">
                 В корзину
               </button>
@@ -199,6 +202,12 @@ export default {
         amount: this.productAmount,
       });
     },
+    updateProductAmount(newValue) {
+      if (newValue >= 1) {
+        this.productAmount = +newValue;
+      } else this.productAmount = 1;
+    },
   },
 };
+
 </script>

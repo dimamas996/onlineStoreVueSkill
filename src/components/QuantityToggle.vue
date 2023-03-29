@@ -1,14 +1,13 @@
 <template>
   <div class="form__counter">
-    <button type="button" aria-label="Убрать один товар" @click="decrement">
+    <button type="button" aria-label="Убрать один товар" @click="change(amount - 1)">
       <svg width="12" height="12" fill="currentColor">
         <use xlink:href="#icon-minus"></use>
       </svg>
     </button>
     <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -->
-    <input type="text" v-model.number="amount"/>
-
-    <button type="button" aria-label="Добавить один товар" @click="increment">
+    <input @blur="change(amount)" type="text" v-model="amount"/>
+    <button type="button" aria-label="Добавить один товар" @click="change(amount + 1)">
       <svg width="12" height="12" fill="currentColor">
         <use xlink:href="#icon-plus"></use>
       </svg>
@@ -17,29 +16,30 @@
 </template>
 
 <script>
+import isValidNumber from '@/helpers/isValidNumber';
+
 export default {
   name: 'QuantityToggle',
-  props: {
-    value: Number,
-  },
+  props: ['productAmount'],
   computed: {
     amount: {
       get() {
-        return this.value;
+        return this.productAmount;
       },
       set(newValue) {
-        this.$emit('input', newValue);
+        if (this.isValidNumber(newValue)) {
+          this.$emit('changer', newValue);
+        }
       },
     },
   },
   methods: {
-    increment() {
-      this.amount += 1;
+    change(newValue) {
+      if (this.isValidNumber(newValue)) {
+        this.amount = +newValue;
+      }
     },
-    decrement() {
-      if (this.amount === 1) return;
-      this.amount -= 1;
-    },
+    isValidNumber,
   },
 };
 </script>
