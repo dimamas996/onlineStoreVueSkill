@@ -221,7 +221,7 @@ export default {
       this.currentCategoryId = value;
     },
     colors(value) {
-      this.currentColor = JSON.parse(JSON.stringify(value)); // try to rewrite object
+      this.currentColor = { ...value };
     },
   },
   model: {
