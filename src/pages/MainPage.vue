@@ -11,7 +11,7 @@
 
     <div class="content__catalog">
       <ProductFilter :price-from.sync="filterPriceFrom" :price-to.sync="filterPriceTo"
-                     :category-id.sync="filterCategoryId" v-model="page"/>
+                     :category-id.sync="filterCategoryId" :colors.sync="filterColor" v-model="page"/>
       <section class="catalog">
         <ProductList :products="products"/>
         <BasePagination v-model="page" :count="countProducts" :per-page="productPerPage"/>
@@ -37,6 +37,15 @@ export default {
       filterPriceFrom: 0,
       filterPriceTo: 0,
       filterCategoryId: 0,
+      filterColor: {
+        '#73B6EA': false,
+        '#FFBE15': false,
+        '#939393': false,
+        '#8BE000': false,
+        '#FF6B00': false,
+        '#FFF': false,
+        '#000': false,
+      },
 
       page: 1,
       productPerPage: 6,
@@ -54,6 +63,9 @@ export default {
       if (this.filterCategoryId) {
         filteredProducts = filteredProducts.filter((product) => product.categoryId === this.filterCategoryId);
       }
+      if (this.selectedColors.length) {
+        filteredProducts = filteredProducts.filter((product) => product.colorOptions.some((prodColor) => this.selectedColors.includes(prodColor)));
+      }
       return filteredProducts;
     },
     products() {
@@ -62,6 +74,9 @@ export default {
     },
     countProducts() {
       return this.filteredProducts.length;
+    },
+    selectedColors() {
+      return Object.keys(this.filterColor).filter((key) => this.filterColor[key]);
     },
   },
 };
