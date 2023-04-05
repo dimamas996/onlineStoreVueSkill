@@ -112,52 +112,22 @@
 
 <script>
 import CartIndicator from '@/components/CartIndicator.vue';
+import { mapActions, mapMutations } from 'vuex';
 
 export default {
   name: 'App',
   components: { CartIndicator },
   comments: ['CartIndicator'],
-};
-</script>
-
-<!--
-<template>
-  <component :is="currentPageComponent" :page-params="currentPageParams"></component>
-</template>
-
-import eventBus from '@/eventBus';
-import MainPage from './pages/MainPage.vue';
-import ProductPage from './pages/ProductPage.vue';
-import NotFoundPage from './pages/NotFoundPage.vue';
-
-const routes = {
-  main: MainPage,
-  product: ProductPage,
-};
-
-  data() {
-    return {
-      currentPage: 'main',
-      currentPageParams: {},
-    };
-  },
-  components: {
-    MainPage,
-    ProductPage,
-    NotFoundPage,
-  },
-  computed: {
-    currentPageComponent() {
-      return routes[this.currentPage] || 'NotFoundPage';
-    },
+  created() {
+    const userAccessKey = localStorage.getItem('userAccessKey');
+    if (userAccessKey) {
+      this.updateUserAccessKey(userAccessKey);
+    }
+    this.loadCart(); // this.$store.dispatch('loadCart'); - orginal string, like in other cases we use here mapActions(or mapGetters etc)
   },
   methods: {
-    goToPage(pageName, pageParams) {
-      this.currentPage = pageName;
-      this.currentPageParams = pageParams || {};
-    },
+    ...mapActions(['loadCart']),
+    ...mapMutations(['updateUserAccessKey']),
   },
-  created() {
-    eventBus.$on('goToPage', (pageName, pageParams) => this.goToPage(pageName, pageParams));
-  },
--->
+};
+</script>

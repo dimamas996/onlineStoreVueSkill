@@ -11,15 +11,15 @@
     </h3>
 
     <span class="catalog__price">
-              {{ product.price | numberFormat}} ₽
+              {{ product.price | numberFormat }} ₽
             </span>
 
     <ul class="colors colors--black">
-      <li v-for="colorItem in product.colorOptions" class="colors__item" :key="colorItem.id">
+      <li v-for="colorItem in product.colors" class="colors__item" :key="colorItem.id">
         <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
         <label class="colors__label">
           <input class="colors__radio sr-only" type="radio" :value="colorItem" v-model="color">
-          <span class="colors__value" :style="{ backgroundColor: colorItem }"></span>
+          <span class="colors__value" :style="{ backgroundColor: colorItem.code }"></span>
         </label>
       </li>
     </ul>
@@ -27,7 +27,6 @@
 </template>
 
 <script>
-import goToPage from '@/helpers/goToPage';
 import numberFormat from '@/helpers/numberFormat';
 
 export default {
@@ -42,10 +41,7 @@ export default {
   },
   props: ['product'],
   created() {
-    [this.color] = [this.product.colorOptions[0]];
-  },
-  methods: {
-    goToPage,
+    [this.color] = [this.product.colors[0]];
   },
 };
 </script>

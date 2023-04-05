@@ -10,9 +10,12 @@
     </div>
 
     <div class="content__catalog">
-      <ProductFilter :price-from.sync="filterPriceFrom" :price-to.sync="filterPriceTo"
-                     :category-id.sync="filterCategoryId" :colors.sync="filterColor" v-model="page"/>
+      <ProductFilter v-model="page" :category-id.sync="filterCategoryId"
+                     :colors.sync="filterColor" :price-from.sync="filterPriceFrom"
+                     :price-to.sync="filterPriceTo"/>
       <section class="catalog">
+        <div v-if="productsLoading"><img alt="Loading..." src="../assets/Iphone-spinner-2.gif"></div>
+        <div v-if="productsLoadingFailed">Error<button @click.prevent="loadProducts">Try again </button></div>
         <ProductList :products="products"/>
         <BasePagination v-model="page" :count="countProducts" :per-page="productPerPage"/>
       </section>
@@ -21,10 +24,13 @@
 </template>
 
 <script>
-import products from '@/data/products';
 import ProductList from '@/components/ProductList.vue';
 import BasePagination from '@/components/BasePagination.vue';
 import ProductFilter from '@/components/ProductFilter.vue';
+// eslint-disable-next-line
+import axios from 'axios';
+// eslint-disable-next-line
+import { API_BASE_URL } from '@/config';
 
 export default {
   components: {
@@ -48,36 +54,72 @@ export default {
       },
 
       page: 1,
-      productPerPage: 6,
+      productPerPage: 9,
+
+      productsData: null,
+      productsLoading: false,
+      productsLoadingFailed: false,
     };
   },
   computed: {
-    filteredProducts() {
-      let filteredProducts = products;
-      if (this.filterPriceFrom > 0) {
-        filteredProducts = filteredProducts.filter((product) => product.price > this.filterPriceFrom);
-      }
-      if (this.filterPriceTo > 0) {
-        filteredProducts = filteredProducts.filter((product) => product.price < this.filterPriceTo);
-      }
-      if (this.filterCategoryId) {
-        filteredProducts = filteredProducts.filter((product) => product.categoryId === this.filterCategoryId);
-      }
-      if (this.selectedColors.length) {
-        filteredProducts = filteredProducts.filter((product) => product.colorOptions.some((prodColor) => this.selectedColors.includes(prodColor)));
-      }
-      return filteredProducts;
-    },
     products() {
-      const offset = (this.page - 1) * this.productPerPage;
-      return this.filteredProducts.slice(offset, offset + this.productPerPage);
+      return this.productsData ? this.productsData.items.map((product) => ({
+        ...product,
+        image: product.image.file.url,
+      })) : [];
     },
     countProducts() {
-      return this.filteredProducts.length;
+      return this.productsData ? this.productsData.pagination.total : 0;
     },
     selectedColors() {
-      return Object.keys(this.filterColor).filter((key) => this.filterColor[key]);
+      return Object.keys(this.filterColor)
+        .filter((key) => this.filterColor[key]);
     },
+  },
+  methods: {
+    loadProducts() {
+      this.productsLoading = true;
+      this.productsLoadingFailed = false;
+      clearTimeout(this.loadProdTimer);
+      // eslint-disable-next-line
+      this.loadProdTimer = setTimeout(() => {
+        axios.get(`${API_BASE_URL}/api/products`, {
+          params: {
+            page: this.page,
+            limit: this.productPerPage,
+            categoryId: this.filterCategoryId,
+            minPrice: this.filterPriceFrom,
+            maxPrice: this.filterPriceTo,
+          },
+        })
+          .then((response) => {
+            this.productsData = response.data;
+          })
+          .catch(() => {
+            this.productsLoadingFailed = true;
+          })
+          .finally(() => {
+            this.productsLoading = false;
+          });
+      });
+    },
+  },
+  watch: {
+    page() {
+      this.loadProducts();
+    },
+    filterPriceFrom() {
+      this.loadProducts();
+    },
+    filterPriceTo() {
+      this.loadProducts();
+    },
+    filterCategoryId() {
+      this.loadProducts();
+    },
+  },
+  created() {
+    this.loadProducts();
   },
 };
 </script>

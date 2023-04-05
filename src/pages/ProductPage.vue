@@ -1,5 +1,9 @@
 <template>
-  <main class="content container">
+  <div v-if="productLoading"><img alt="Loading..." src="../assets/Iphone-spinner-2.gif"></div>
+  <div v-else-if="productLoadingFailed">Error
+    <button @click.prevent="loadProduct">Try again</button>
+  </div>
+  <main v-else class="content container">
     <div class="content__top">
       <ul class="breadcrumbs">
         <li class="breadcrumbs__item">
@@ -9,7 +13,7 @@
         </li>
         <li class="breadcrumbs__item">
           <router-link class="breadcrumbs__link" :to="{name: 'main'}">
-            {{ category.title }}
+            {{ product.category.title }}
           </router-link>
         </li>
         <li class="breadcrumbs__item">
@@ -23,7 +27,7 @@
     <section class="item">
       <div class="item__pics pics">
         <div class="pics__wrapper">
-          <img width="570" height="570" :src="product.image" :alt="product.title">
+          <img width="570" height="570" :src="product.image.file.url" :alt="product.title">
         </div>
       </div>
 
@@ -34,35 +38,21 @@
         </h2>
         <div class="item__form">
           <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events -->
-          <form class="form" action="#" method="POST" @submit.prevent="addToCart">
+          <form class="form" action="#" method="POST">
             <b class="item__price">
               {{ product.price | numberFormat }} ₽
             </b>
             <fieldset class="form__block">
               <legend class="form__legend">Цвет:</legend>
               <ul class="colors">
-                <li class="colors__item">
+                <li v-for="color in product.colors" :key="color.index" class="colors__item">
                   <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
                   <label class="colors__label">
-                    <input class="colors__radio sr-only" type="radio" name="color-item" value="blue" checked="">
-                    <span class="colors__value" style="background-color: #73B6EA;">
+                    <input class="colors__radio sr-only" type="radio" name="color-item" value="blue"
+                           checked="">
+                    <span class="colors__value" :style="{'background-color': color.code}">
                     </span>
                   </label>
-                </li>
-                <li class="colors__item">
-                  <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-                  <label class="colors__label">
-                    <input class="colors__radio sr-only" type="radio" name="color-item" value="yellow">
-                    <span class="colors__value" style="background-color: #FFBE15;">
-                    </span>
-                  </label>
-                </li>
-                <li class="colors__item">
-                  <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-                  <label class="colors__label">
-                    <input class="colors__radio sr-only" type="radio" name="color-item" value="gray">
-                    <span class="colors__value" style="background-color: #939393;">
-                  </span></label>
                 </li>
               </ul>
             </fieldset>
@@ -92,7 +82,8 @@
                 <li class="sizes__item">
                   <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
                   <label class="sizes__label">
-                    <input class="sizes__radio sr-only" type="radio" name="sizes-item" value="128" checked="">
+                    <input class="sizes__radio sr-only" type="radio" name="sizes-item" value="128"
+                           checked="">
                     <span class="sizes__value">
                       128gb
                     </span>
@@ -106,9 +97,11 @@
                 :product-amount="productAmount"
                 @changer="updateProductAmount"
               />
-              <button class="button button--primery" type="submit">
+              <button class="button button--primery" @click.prevent="addToCart" :disabled="productSending" type="submit">
                 В корзину
               </button>
+              <div v-show="productAdded"> The item added to the cart</div>
+              <div v-show="productSending">Add item to the cart</div>
             </div>
           </form>
         </div>
@@ -170,10 +163,10 @@
 
 <script>
 import QuantityToggle from '@/components/QuantityToggle.vue';
-import products from '@/data/products';
-import categories from '@/data/categories';
-import goToPage from '@/helpers/goToPage';
 import numberFormat from '@/helpers/numberFormat';
+import axios from 'axios';
+import { API_BASE_URL } from '@/config';
+import { mapActions } from 'vuex';
 
 export default {
   props: ['pageParams'],
@@ -181,31 +174,67 @@ export default {
   data() {
     return {
       productAmount: 1,
+      productData: null,
+      productLoading: false,
+      productLoadingFailed: false,
+      productAdded: false,
+      productSending: false,
     };
   },
   computed: {
     product() {
-      return products.find((product) => product.id === +this.$route.params.id);
-    },
-    category() {
-      return categories.find((category) => category.id === this.product.categoryId);
+      return this.productData;
     },
   },
   filters: {
     numberFormat,
   },
   methods: {
-    goToPage,
+    ...mapActions(['addToCartProd']),
     addToCart() {
-      this.$store.commit('addProductToCart', {
+      this.productAdded = false;
+      this.productSending = true;
+      this.addToCartProd({
         productId: this.product.id,
         amount: this.productAmount,
+      }).then(() => {
+        this.productAdded = true;
+        this.productSending = false;
       });
     },
     updateProductAmount(newValue) {
       if (newValue >= 1) {
         this.productAmount = +newValue;
-      } else this.productAmount = 1;
+      } else {
+        this.productAmount = 1;
+      }
+    },
+    loadProduct() {
+      this.productLoading = true;
+      this.productLoadingFailed = false;
+      axios.get(`${API_BASE_URL}/api/products/${this.$route.params.id}`)
+        .then((response) => {
+          this.productData = response.data;
+        })
+        .catch(() => {
+          this.productLoadingFailed = true;
+        })
+        .finally(() => {
+          this.productLoading = false;
+        });
+    },
+  },
+  created() {
+    this.loadProduct();
+  },
+  watch: {
+    '$route.params.id': {
+      handler() {
+        this.productAdded = false;
+        this.productSending = false;
+        this.loadProduct();
+      },
+      immediate: true,
     },
   },
 };
