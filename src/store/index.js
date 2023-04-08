@@ -99,7 +99,6 @@ export default new Vuex.Store({
       });
     },
     deleteCartProd(context, { productId }) {
-      console.log(productId);
       context.commit('deleteCartProduct', productId);
 
       const requestOptions = {
