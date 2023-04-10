@@ -23,12 +23,12 @@
         Корзина
       </h1>
       <span class="content__info">
-        3 товара
+        {{ posAm }} {{ editedWord }}
       </span>
     </div>
 
     <section class="cart">
-      <form class="cart__form form" action="#" method="POST">
+      <form class="cart__form form" @submit.prevent="makeOrder" action="#" method="POST">
         <div class="cart__field">
           <div class="cart__data">
             <BaseFormText v-model="formData.name" title="ФИО" :error="formError.name"
@@ -39,8 +39,8 @@
                           :error="formError.phone" placeholder="Введите ваш телефон"/>
             <BaseFormText v-model="formData.email" type="email" title="Email"
                           :error="formError.email" placeholder="Введи ваш Email"/>
-            <BaseFormTextarea v-model="formData.comments" title="Комментарий к заказу"
-                              :error="formError.comments" placeholder="Ваши пожелания"/>
+            <BaseFormTextarea v-model="formData.comment" title="Комментарий к заказу"
+                              :error="formError.comment" placeholder="Ваши пожелания"/>
           </div>
 
           <div class="cart__options">
@@ -110,10 +110,22 @@
             Оформить заказ
           </button>
         </div>
-        <div class="cart__error form__error-block">
+        <div v-if="formErrorMessage" class="cart__error form__error-block">
           <h4>Заявка не отправлена!</h4>
           <p>
-            Похоже произошла ошибка. Попробуйте отправить снова или перезагрузите страницу.
+            {{ this.formErrorMessage }}
+          </p>
+        </div>
+        <div v-if="formSending">
+          <h4>Ваша заказ отправляется...</h4>
+          <p>
+            <img alt="Пожалуйста, ожидайте..." src="../assets/Iphone-spinner-2.gif">
+          </p>
+        </div>
+        <div v-if="formSent" >
+          <h4>Заказ отправлен!</h4>
+          <p>
+            Спасибо, что выбрали нас!
           </p>
         </div>
       </form>
@@ -126,6 +138,8 @@ import BaseFormText from '@/components/BaseFormText.vue';
 import BaseFormTextarea from '@/components/BaseFormTextarea.vue';
 import { mapGetters } from 'vuex';
 import numberFormat from '@/helpers/numberFormat';
+import { API_BASE_URL } from '@/config';
+import axios from 'axios';
 
 export default {
   name: 'OrderPage',
@@ -140,6 +154,9 @@ export default {
     return {
       formData: {},
       formError: {},
+      formErrorMessage: '',
+      formSending: false,
+      formSent: false,
       deliveryPrice: 500,
     };
   },
@@ -156,6 +173,40 @@ export default {
     },
   },
   methods: {
+    makeOrder() {
+      this.formError = {};
+      this.formErrorMessage = '';
+      this.formSending = true;
+      this.formSent = false;
+
+      const requestOptions = {
+        method: 'POST',
+        data: {
+          ...this.formData,
+        },
+        url: `${API_BASE_URL}/api/orders`,
+        params: {
+          userAccessKey: this.$store.state.userAccessKey,
+        },
+      };
+
+      return axios(requestOptions)
+        .then((response) => {
+          this.$store.commit('resetCart');
+          this.formData = {};
+          this.formSent = true;
+          this.formSending = false;
+          this.$store.commit('updateOrderInfo', response.data);
+          setTimeout(() => {
+            this.$router.push({ name: 'orderInfo', params: { id: response.data.id } });
+          }, 300);
+        })
+        .catch((error) => {
+          this.formSending = false;
+          this.formError = error.response.data.error.request || {};
+          this.formErrorMessage = error.response.data.error.message || '';
+        });
+    },
     endingEdit() {
       let string = 'товар';
       if ([11, 12, 13, 14].includes(this.posAm % 100)) {
