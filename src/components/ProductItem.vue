@@ -1,7 +1,7 @@
 <template>
   <li class="catalog__item">
     <router-link class="catalog__pic" :to="{name: 'product', params: {id: product.id}}">
-      <img :src="product.image" :alt="product.title">
+      <img class="adjust-image" :src="product.image" :alt="product.title">
     </router-link>
 
     <h3 class="catalog__title">
@@ -46,6 +46,8 @@ export default {
 };
 </script>
 
-<style scoped>
-
+<style>
+  .adjust-image{
+    object-fit: contain !important;
+  }
 </style>

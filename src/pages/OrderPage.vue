@@ -49,21 +49,23 @@
               <li class="options__item">
                 <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
                 <label class="options__label">
-                  <input class="options__radio sr-only" type="radio" name="delivery" value="0"
-                         checked="">
+                  <input class="options__radio sr-only" checked type="radio" name="delivery"
+                         :value="deliveryPrice">
                   <span class="options__value">
-                    Самовывоз <b>бесплатно</b>
+                    Курьером <b>{{ deliveryPrice }} ₽</b>
                   </span>
                 </label>
               </li>
               <li class="options__item">
-                <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-                <label class="options__label">
-                  <input class="options__radio sr-only" type="radio" name="delivery" value="500">
-                  <span class="options__value">
-                    Курьером <b>500 ₽</b>
+                <abbr :title="temporaryMessage">
+                  <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
+                  <label class="options__label unavalible">
+                    <input class="options__radio sr-only" type="radio" name="delivery" value="0">
+                    <span class="options__value">
+                    Самовывоз <b>бесплатно</b>
                   </span>
-                </label>
+                  </label>
+                </abbr>
               </li>
             </ul>
 
@@ -72,44 +74,34 @@
               <li class="options__item">
                 <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
                 <label class="options__label">
-                  <input class="options__radio sr-only" type="radio" name="pay" value="card">
+                  <input class="options__radio sr-only" checked type="radio" name="pay"
+                         value="card">
                   <span class="options__value">
                     Картой при получении
                   </span>
                 </label>
               </li>
               <li class="options__item">
-                <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-                <label class="options__label">
-                  <input class="options__radio sr-only" type="radio" name="pay" value="cash">
-                  <span class="options__value">
+                <abbr :title="temporaryMessage">
+                  <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
+                  <label class="options__label unavalible">
+                    <input class="options__radio sr-only" disabled type="radio" name="pay"
+                           value="cash">
+                    <span class="options__value">
                     Наличными при получении
                   </span>
-                </label>
+                  </label>
+                </abbr>
               </li>
             </ul>
           </div>
         </div>
-
-        <div class="cart__block">
-          <ul class="cart__orders">
-            <li v-for="item of products" :key="item.id" class="cart__order">
-              <h3>{{ item.title }}</h3>
-              <b>{{ item.amount }} x {{ item.price }} ₽</b>
-              <span>Артикул: {{ item.productId }}</span>
-            </li>
-          </ul>
-
-          <div class="cart__total">
-            <p>Доставка: <b>{{ deliveryPrice | numberFormat }} ₽</b></p>
-            <p>Итого: <b>{{ posAm }}</b> {{ editedWord }} на сумму
-              <b>{{ totalPrice + deliveryPrice | numberFormat }} ₽</b></p>
-          </div>
-
+        <CompleteOrderList :products="products" :delivery-price="deliveryPrice"
+                           :total-price="totalPrice">
           <button class="cart__button button button--primery" type="submit">
             Оформить заказ
           </button>
-        </div>
+        </CompleteOrderList>
         <div v-if="formErrorMessage" class="cart__error form__error-block">
           <h4>Заявка не отправлена!</h4>
           <p>
@@ -122,7 +114,7 @@
             <img alt="Пожалуйста, ожидайте..." src="../assets/Iphone-spinner-2.gif">
           </p>
         </div>
-        <div v-if="formSent" >
+        <div v-if="formSent">
           <h4>Заказ отправлен!</h4>
           <p>
             Спасибо, что выбрали нас!
@@ -136,8 +128,10 @@
 <script>
 import BaseFormText from '@/components/BaseFormText.vue';
 import BaseFormTextarea from '@/components/BaseFormTextarea.vue';
+import CompleteOrderList from '@/components/CompleteOrderList.vue';
 import { mapGetters } from 'vuex';
 import numberFormat from '@/helpers/numberFormat';
+import endingEdit from '@/helpers/endingEdit';
 import { API_BASE_URL } from '@/config';
 import axios from 'axios';
 
@@ -146,6 +140,7 @@ export default {
   components: {
     BaseFormText,
     BaseFormTextarea,
+    CompleteOrderList,
   },
   filters: {
     numberFormat,
@@ -158,6 +153,7 @@ export default {
       formSending: false,
       formSent: false,
       deliveryPrice: 500,
+      temporaryMessage: 'Временно недоступно',
     };
   },
   computed: {
@@ -168,7 +164,7 @@ export default {
     }),
     editedWord: {
       get() {
-        return this.endingEdit();
+        return this.endingEdit(this.posAm);
       },
     },
   },
@@ -198,7 +194,10 @@ export default {
           this.formSending = false;
           this.$store.commit('updateOrderInfo', response.data);
           setTimeout(() => {
-            this.$router.push({ name: 'orderInfo', params: { id: response.data.id } });
+            this.$router.push({
+              name: 'orderInfo',
+              params: { id: response.data.id },
+            });
           }, 300);
         })
         .catch((error) => {
@@ -207,19 +206,17 @@ export default {
           this.formErrorMessage = error.response.data.error.message || '';
         });
     },
-    endingEdit() {
-      let string = 'товар';
-      if ([11, 12, 13, 14].includes(this.posAm % 100)) {
-        string += 'ов';
-      } else if (this.posAm % 10 === 1) {
-        string += '';
-      } else if ([2, 3, 4].includes(this.posAm % 10)) {
-        string += 'а';
-      } else {
-        string += 'ов';
-      }
-      return string;
-    },
+    endingEdit,
   },
 };
 </script>
+
+<style>
+.unavalible {
+  cursor: not-allowed;
+}
+
+.unavalible:hover {
+  background-color: rgba(255, 64, 54, 0.39);
+}
+</style>
