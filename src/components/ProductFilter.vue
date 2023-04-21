@@ -37,70 +37,15 @@
       <fieldset class="form__block">
         <legend class="form__legend">Цвет</legend>
         <ul class="colors">
-          <li class="colors__item">
+          <li v-for="item in colorSet" class="colors__item" :key="item.id">
             <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
             <label class="colors__label">
               <input class="colors__radio sr-only flag-color"
                      name="color"
-                     type="checkbox" v-model="currentColor['#73B6EA']">
-              <span class="colors__value" style="background-color: #73B6EA;">
+                     type="radio" @click="selectColor(item.id)">
+              <span class="colors__value" :style="{ backgroundColor: item.code }">
                   </span>
             </label>
-          </li>
-          <li class="colors__item">
-            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-            <label class="colors__label">
-              <input class="colors__radio sr-only flag-color"
-                     name="color"
-                     type="checkbox" v-model="currentColor['#FFBE15']">
-              <span class="colors__value" style="background-color: #FFBE15;">
-                  </span>
-            </label>
-          </li>
-          <li class="colors__item">
-            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-            <label class="colors__label">
-              <input class="colors__radio sr-only flag-color"
-                     name="color"
-                     type="checkbox" v-model="currentColor['#939393']">
-              <span class="colors__value" style="background-color: #939393;">
-                </span></label>
-          </li>
-          <li class="colors__item">
-            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-            <label class="colors__label">
-              <input class="colors__radio sr-only flag-color"
-                     name="color"
-                     type="checkbox" v-model="currentColor['#8BE000']">
-              <span class="colors__value" style="background-color: #8BE000;">
-                </span></label>
-          </li>
-          <li class="colors__item">
-            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-            <label class="colors__label">
-              <input class="colors__radio sr-only flag-color"
-                     name="color"
-                     type="checkbox" v-model="currentColor['#FF6B00']">
-              <span class="colors__value" style="background-color: #FF6B00;">
-                </span></label>
-          </li>
-          <li class="colors__item">
-            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-            <label class="colors__label">
-              <input class="colors__radio sr-only flag-color"
-                     name="color"
-                     type="checkbox" v-model="currentColor['#FFF']">
-              <span class="colors__value" style="background-color: #FFF;">
-                </span></label>
-          </li>
-          <li class="colors__item">
-            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
-            <label class="colors__label">
-              <input class="colors__radio sr-only flag-color"
-                     name="color"
-                     type="checkbox" v-model="currentColor['#000']">
-              <span class="colors__value" style="background-color: #000;">
-                </span></label>
           </li>
         </ul>
       </fieldset>
@@ -194,22 +139,21 @@ export default {
       currentPriceFrom: 0,
       currentPriceTo: 0,
       currentCategoryId: 0,
-      currentColor: {
-        '#73B6EA': false,
-        '#FFBE15': false,
-        '#939393': false,
-        '#8BE000': false,
-        '#FF6B00': false,
-        '#FFF': false,
-        '#000': false,
-      },
+      currentColor: 0,
       categoriesData: null,
+      colorSetData: null,
     };
   },
   props: ['priceFrom', 'priceTo', 'categoryId', 'colors'],
   computed: {
     categories() {
       return this.categoriesData ? this.categoriesData.items : [];
+    },
+    colorSet() {
+      if (this.colorSetData) {
+        return this.colorSetData.filter((item) => item.id < 12);
+      }
+      return [];
     },
   },
   watch: {
@@ -223,7 +167,7 @@ export default {
       this.currentCategoryId = value;
     },
     colors(value) {
-      this.currentColor = { ...value };
+      this.currentColor = value;
     },
   },
   model: {
@@ -242,15 +186,7 @@ export default {
       this.$emit('update:priceFrom', 0);
       this.$emit('update:priceTo', 0);
       this.$emit('update:categoryId', 0);
-      this.$emit('update:colors', {
-        '#73B6EA': false,
-        '#FFBE15': false,
-        '#939393': false,
-        '#8BE000': false,
-        '#FF6B00': false,
-        '#FFF': false,
-        '#000': false,
-      });
+      this.$emit('update:colors', 0);
       this.$emit('pageReset', 1);
     },
     loadCategories() {
@@ -259,9 +195,19 @@ export default {
           this.categoriesData = response.data;
         });
     },
+    loadColors() {
+      axios.get(`${API_BASE_URL}/api/colors`)
+        .then((response) => {
+          this.colorSetData = response.data.items;
+        });
+    },
+    selectColor(value) {
+      this.currentColor = value;
+    },
   },
   created() {
     this.loadCategories();
+    this.loadColors();
   },
 };
 </script>

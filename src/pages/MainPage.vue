@@ -43,15 +43,7 @@ export default {
       filterPriceFrom: 0,
       filterPriceTo: 0,
       filterCategoryId: 0,
-      filterColor: {
-        '#73B6EA': false,
-        '#FFBE15': false,
-        '#939393': false,
-        '#8BE000': false,
-        '#FF6B00': false,
-        '#FFF': false,
-        '#000': false,
-      },
+      filterColor: 0,
 
       page: 1,
       productPerPage: 9,
@@ -71,10 +63,6 @@ export default {
     countProducts() {
       return this.productsData ? this.productsData.pagination.total : 0;
     },
-    selectedColors() {
-      return Object.keys(this.filterColor)
-        .filter((key) => this.filterColor[key]);
-    },
   },
   methods: {
     loadProducts() {
@@ -90,6 +78,7 @@ export default {
             categoryId: this.filterCategoryId,
             minPrice: this.filterPriceFrom,
             maxPrice: this.filterPriceTo,
+            colorId: this.filterColor,
           },
         })
           .then((response) => {
@@ -115,6 +104,9 @@ export default {
       this.loadProducts();
     },
     filterCategoryId() {
+      this.loadProducts();
+    },
+    filterColor() {
       this.loadProducts();
     },
   },
