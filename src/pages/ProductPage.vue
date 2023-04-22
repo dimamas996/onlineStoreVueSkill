@@ -1,5 +1,5 @@
 <template>
-  <div v-if="productLoading"><img alt="Loading..." src="../assets/Iphone-spinner-2.gif"></div>
+  <LoaderComponent v-if="productLoading"/>
   <div v-else-if="productLoadingFailed">Error
     <button @click.prevent="loadProduct">Try again</button>
   </div>
@@ -163,6 +163,7 @@
 
 <script>
 import QuantityToggle from '@/components/QuantityToggle.vue';
+import LoaderComponent from '@/components/LoaderComponent.vue';
 import numberFormat from '@/helpers/numberFormat';
 import axios from 'axios';
 import { API_BASE_URL } from '@/config';
@@ -170,7 +171,7 @@ import { mapActions } from 'vuex';
 
 export default {
   props: ['pageParams'],
-  components: { QuantityToggle },
+  components: { QuantityToggle, LoaderComponent },
   data() {
     return {
       productAmount: 1,

@@ -14,7 +14,7 @@
                      :colors.sync="filterColor" :price-from.sync="filterPriceFrom"
                      :price-to.sync="filterPriceTo"/>
       <section class="catalog">
-        <div v-if="productsLoading"><img alt="Loading..." src="../assets/Iphone-spinner-2.gif"></div>
+        <LoaderComponent v-if="productsLoading"/>
         <div v-if="productsLoadingFailed">Error<button @click.prevent="loadProducts">Try again </button></div>
         <ProductList :products="products"/>
         <BasePagination v-model="page" :count="countProducts" :per-page="productPerPage"/>
@@ -27,6 +27,7 @@
 import ProductList from '@/components/ProductList.vue';
 import BasePagination from '@/components/BasePagination.vue';
 import ProductFilter from '@/components/ProductFilter.vue';
+import LoaderComponent from '@/components/LoaderComponent.vue';
 // eslint-disable-next-line
 import axios from 'axios';
 // eslint-disable-next-line
@@ -37,6 +38,7 @@ export default {
     ProductList,
     BasePagination,
     ProductFilter,
+    LoaderComponent,
   },
   data() {
     return {
