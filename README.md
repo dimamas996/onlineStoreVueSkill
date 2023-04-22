@@ -1,24 +1,4 @@
-# first-vue-project
+# Skill Box Project of Vue Course
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Published at:
+https://extraordinary-kitsune-df112d.netlify.app/
